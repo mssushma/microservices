@@ -23,7 +23,7 @@ spec:
 
       - name: product-service
 
-        image: IMAGE_PLACEHOLDER
+        image: PRODUCT_IMAGE
 
         ports:
         - containerPort: 5000
