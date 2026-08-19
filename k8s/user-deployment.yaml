@@ -23,7 +23,7 @@ spec:
 
       - name: user-service
 
-        image: IMAGE_PLACEHOLDER
+        image: USER_IMAGE
 
         ports:
         - containerPort: 5000
