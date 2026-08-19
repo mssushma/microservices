@@ -23,7 +23,7 @@ spec:
 
       - name: order-service
 
-        image: IMAGE_PLACEHOLDER
+        image: ORDER_IMAGE
 
         ports:
         - containerPort: 5000
