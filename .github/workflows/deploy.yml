@@ -235,7 +235,7 @@ jobs:
           -i private_key.pem \
           ubuntu@$EC2_IP << 'EOF'
 
-          sudo export KUBECONFIG=/etc/kubernetes/admin.conf
+          export KUBECONFIG=/etc/kubernetes/admin.conf
 
           helm repo add prometheus-community \
           https://prometheus-community.github.io/helm-charts
@@ -246,6 +246,6 @@ jobs:
           prometheus-community/kube-prometheus-stack \
           -n monitoring
 
-          sudo kubectl get pods -n monitoring
+          kubectl get pods -n monitoring
 
           EOF
