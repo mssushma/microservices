@@ -1,0 +1,220 @@
+name: Microservices Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: terraform
+        env:
+          TF_VAR_key_name: ${{ secrets.TF_VAR_KEY_NAME }}
+        run: |
+          terraform apply -auto-approve
+
+      - name: Fetch Terraform Outputs
+        working-directory: terraform
+        run: |
+
+          echo "USER_ECR=$(terraform output -raw user_ecr_uri)" >> $GITHUB_ENV
+
+          echo "PRODUCT_ECR=$(terraform output -raw product_ecr_uri)" >> $GITHUB_ENV
+
+          echo "ORDER_ECR=$(terraform output -raw order_ecr_uri)" >> $GITHUB_ENV
+
+          echo "EC2_IP=$(terraform output -raw instance_public_ip)" >> $GITHUB_ENV
+
+      - name: Login To ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      ##################################################
+      # USER SERVICE
+      ##################################################
+
+      - name: Build User Service
+        run: |
+          docker build \
+            -t user-service \
+            ./user-service
+
+      - name: Push User Service
+        run: |
+
+          docker tag \
+          user-service:latest \
+          $USER_ECR:${{ github.sha }}
+
+          docker push \
+          $USER_ECR:${{ github.sha }}
+
+      ##################################################
+      # PRODUCT SERVICE
+      ##################################################
+
+      - name: Build Product Service
+        run: |
+          docker build \
+            -t product-service \
+            ./product-service
+
+      - name: Push Product Service
+        run: |
+
+          docker tag \
+          product-service:latest \
+          $PRODUCT_ECR:${{ github.sha }}
+
+          docker push \
+          $PRODUCT_ECR:${{ github.sha }}
+
+      ##################################################
+      # ORDER SERVICE
+      ##################################################
+
+      - name: Build Order Service
+        run: |
+          docker build \
+            -t order-service \
+            ./order-service
+
+      - name: Push Order Service
+        run: |
+
+          docker tag \
+          order-service:latest \
+          $ORDER_ECR:${{ github.sha }}
+
+          docker push \
+          $ORDER_ECR:${{ github.sha }}
+
+      ##################################################
+      # SSH KEY
+      ##################################################
+
+      - name: Create SSH Key
+        run: |
+          echo "${{ secrets.EC2_KEY }}" > private_key.pem
+          chmod 400 private_key.pem
+
+      ##################################################
+      # WAIT FOR CLOUD INIT
+      ##################################################
+
+      - name: Wait For EC2 Bootstrap
+        run: |
+
+          ssh \
+          -o StrictHostKeyChecking=no \
+          -i private_key.pem \
+          ubuntu@$EC2_IP \
+          "cloud-init status --wait"
+
+      ##################################################
+      # UPDATE IMAGES
+      ##################################################
+
+      - name: Replace Image Placeholders
+        run: |
+
+          sed -i \
+          "s|USER_IMAGE|$USER_ECR:${{ github.sha }}|g" \
+          k8s/user-deployment.yaml
+
+          sed -i \
+          "s|PRODUCT_IMAGE|$PRODUCT_ECR:${{ github.sha }}|g" \
+          k8s/product-deployment.yaml
+
+          sed -i \
+          "s|ORDER_IMAGE|$ORDER_ECR:${{ github.sha }}|g" \
+          k8s/order-deployment.yaml
+
+      ##################################################
+      # COPY FILES TO EC2
+      ##################################################
+
+      - name: Copy Kubernetes Manifests
+        run: |
+
+          scp \
+          -r \
+          -o StrictHostKeyChecking=no \
+          -i private_key.pem \
+          k8s \
+          ubuntu@$EC2_IP:/home/ubuntu/
+
+      ##################################################
+      # DEPLOY TO KUBERNETES
+      ##################################################
+
+      - name: Kubernetes Deployment
+        run: |
+
+          ssh \
+          -o StrictHostKeyChecking=no \
+          -i private_key.pem \
+          ubuntu@$EC2_IP << 'EOF'
+
+          export KUBECONFIG=/etc/kubernetes/admin.conf
+
+          kubectl apply -f /home/ubuntu/k8s/namespace.yaml
+
+          kubectl create namespace monitoring \
+            --dry-run=client \
+            -o yaml | kubectl apply -f -
+
+          kubectl apply -f /home/ubuntu/k8s/
+
+          kubectl get pods -A
+
+          EOF
+
+      ##################################################
+      # INSTALL PROMETHEUS + GRAFANA
+      ##################################################
+
+      - name: Install Prometheus and Grafana
+        run: |
+
+          ssh \
+          -o StrictHostKeyChecking=no \
+          -i private_key.pem \
+          ubuntu@$EC2_IP << 'EOF'
+
+          export KUBECONFIG=/etc/kubernetes/admin.conf
+
+          helm repo add prometheus-community \
+          https://prometheus-community.github.io/helm-charts
+
+          helm repo update
+
+          helm upgrade --install monitoring \
+          prometheus-community/kube-prometheus-stack \
+          -n monitoring
+
+          kubectl get pods -n monitoring
+
+          EOF
