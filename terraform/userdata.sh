@@ -78,14 +78,16 @@ systemctl enable containerd
 curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | \
 gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
-echo "deb[signed-by=/etc/apt/keyrings/kubernetes-apt-keyrings.io/core:/stable:/v1.30/de Malformed entry 1 in list file /etc/etc/apt/sources.list.d/kubernetes.list"
+cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
+deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /
+EOF
 
 apt-get update -y
 
 apt-get install -y \
-kubelet \
-kubeadm \
-kubectl
+  kubelet \
+  kubeadm \
+  kubectl
 
 apt-mark hold kubelet kubeadm kubectl
 
