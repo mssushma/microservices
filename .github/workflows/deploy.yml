@@ -25,6 +25,20 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
+      - name: Cleanup Old IAM Resources
+        continue-on-error: true
+        run: |
+
+          aws iam remove-role-from-instance-profile \
+            --instance-profile-name microservices-ec2-profile \
+            --role-name microservices-ec2-role || true
+
+          aws iam delete-instance-profile \
+            --instance-profile-name microservices-ec2-profile || true
+
+          aws iam delete-role \
+            --role-name microservices-ec2-role || true
+          
       - name: Terraform Init
         working-directory: terraform
         run: terraform init
