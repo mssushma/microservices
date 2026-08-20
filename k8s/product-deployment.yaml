@@ -28,4 +28,3 @@ spec:
 
         ports:
         - containerPort: 5000
-``
