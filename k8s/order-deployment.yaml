@@ -3,6 +3,7 @@ kind: Deployment
 
 metadata:
   name: order-service
+  namespace: microservices
 
 spec:
   replicas: 2
@@ -27,4 +28,3 @@ spec:
 
         ports:
         - containerPort: 5000
-``
