@@ -211,17 +211,15 @@ jobs:
           -i private_key.pem \
           ubuntu@$EC2_IP << 'EOF'
 
-          export KUBECONFIG=/etc/kubernetes/admin.conf
+          sudo kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /home/ubuntu/k8s/namespace.yml
 
-          kubectl apply -f /home/ubuntu/k8s/namespace.yaml
-
-          kubectl create namespace monitoring \
+          sudo kubectl create namespace monitoring \
             --dry-run=client \
             -o yaml | kubectl apply -f -
 
-          kubectl apply -f /home/ubuntu/k8s/
+          sudo kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /home/ubuntu/k8s/
 
-          kubectl get pods -A
+          sudo kubectl --kubeconfig=/etc/kubernetes/admin.conf get pods -A
 
           EOF
 
@@ -237,7 +235,7 @@ jobs:
           -i private_key.pem \
           ubuntu@$EC2_IP << 'EOF'
 
-          export KUBECONFIG=/etc/kubernetes/admin.conf
+          sudo export KUBECONFIG=/etc/kubernetes/admin.conf
 
           helm repo add prometheus-community \
           https://prometheus-community.github.io/helm-charts
@@ -248,6 +246,6 @@ jobs:
           prometheus-community/kube-prometheus-stack \
           -n monitoring
 
-          kubectl get pods -n monitoring
+          sudo kubectl get pods -n monitoring
 
           EOF
