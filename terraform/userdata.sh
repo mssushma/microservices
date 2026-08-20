@@ -5,7 +5,6 @@ set -eux
 # Update system
 
 apt-get update -y
-apt-get upgrade -y
 
 # Disable swap
 
