@@ -3,6 +3,7 @@ kind: Ingress
 
 metadata:
   name: microservices-ingress
+  namespace: microservices
 
 spec:
 
