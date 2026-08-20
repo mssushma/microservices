@@ -32,6 +32,10 @@ jobs:
           aws ec2 delete-security-group \
             --group-name microservices-sg || true
 
+          aws iam detach-role-policy \
+            --role-name microservices-ec2-role \
+            --policy-arn arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly || true
+
           aws iam remove-role-from-instance-profile \
             --instance-profile-name microservices-ec2-profile \
             --role-name microservices-ec2-role || true
