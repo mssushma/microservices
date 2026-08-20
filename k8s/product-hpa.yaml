@@ -4,6 +4,7 @@ kind: HorizontalPodAutoscaler
 
 metadata:
   name: product-service-hpa
+  namespace: microservices
 
 spec:
 
