@@ -4,6 +4,7 @@ kind: HorizontalPodAutoscaler
 
 metadata:
   name: order-service-hpa
+  namespace: microservices
 
 spec:
 
