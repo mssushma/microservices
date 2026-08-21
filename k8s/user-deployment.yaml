@@ -20,6 +20,9 @@ spec:
 
     spec:
 
+      imagePullSecrets:
+        - name: ecr-secret
+
       containers:
 
       - name: user-service
