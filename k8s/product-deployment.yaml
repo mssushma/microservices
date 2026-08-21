@@ -19,7 +19,10 @@ spec:
         app: product-service
 
     spec:
-
+    
+      imagePullSecrets:
+        - name: ecr-secret
+        
       containers:
 
       - name: product-service
