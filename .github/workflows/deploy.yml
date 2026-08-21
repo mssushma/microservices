@@ -84,6 +84,10 @@ jobs:
       - name: Login To ECR
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Get ECR Login Password
+        run: |
+          echo "ECR_PASSWORD=$(aws ecr get-login-password --region ${{ secrets.AWS_REGION }})" >> $GITHUB_ENV
+
       ##################################################
       # USER SERVICE
       ##################################################
@@ -216,6 +220,13 @@ jobs:
           sudo kubectl create namespace monitoring \
             --dry-run=client \
             -o yaml | kubectl apply -f -
+
+          kubectl create secret docker-registry ecr-secret \
+          --docker-server=$ECR_URI \
+          --docker-username=AWS \
+          --docker-password='$ECR_PASSWORD' \
+          -n app \
+          --dry-run=client -o yaml | kubectl apply -f -
 
           sudo kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /home/ubuntu/k8s/
 
