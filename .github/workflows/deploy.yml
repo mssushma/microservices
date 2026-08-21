@@ -213,7 +213,7 @@ jobs:
           ssh \
           -o StrictHostKeyChecking=no \
           -i private_key.pem \
-          ubuntu@$EC2_IP << 'EOF'
+          ubuntu@$EC2_IP << EOF
 
           sudo kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /home/ubuntu/k8s/namespace.yml
 
@@ -244,7 +244,7 @@ jobs:
           ssh \
           -o StrictHostKeyChecking=no \
           -i private_key.pem \
-          ubuntu@$EC2_IP << 'EOF'
+          ubuntu@$EC2_IP << EOF
 
           export KUBECONFIG=/home/ubuntu/.kube/config
 
