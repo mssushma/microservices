@@ -19,7 +19,10 @@ spec:
         app: order-service
 
     spec:
-
+    
+      imagePullSecrets:
+        - name: ecr-secret
+        
       containers:
 
       - name: order-service
