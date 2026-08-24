@@ -215,11 +215,12 @@ jobs:
           -i private_key.pem \
           ubuntu@$EC2_IP << EOF
 
-          sudo kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /home/ubuntu/k8s/namespace.yml
+          export KUBECONFIG=/home/ubuntu/.kube/config
+
+          sudo kubectl apply -f /home/ubuntu/k8s/namespace.yaml
 
           sudo kubectl create namespace monitoring \
-            --dry-run=client \
-            -o yaml | kubectl apply -f -
+          --dry-run=client -o yaml | kubectl apply -f -
 
           kubectl create secret docker-registry ecr-secret \
           --docker-server=774871136295.dkr.ecr.us-east-1.amazonaws.com \
@@ -227,6 +228,9 @@ jobs:
           --docker-password="${ECR_PASSWORD}" \
           -n microservices \
           --dry-run=client -o yaml | kubectl apply -f -
+
+          echo "===== SECRETS ====="
+          kubectl get secret -n microservices
 
           sudo kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /home/ubuntu/k8s/
 
