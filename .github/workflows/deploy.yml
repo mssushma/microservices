@@ -217,9 +217,10 @@ jobs:
 
           export KUBECONFIG=/home/ubuntu/.kube/config
 
-          sudo kubectl apply -f /home/ubuntu/k8s/namespace.yaml
+          kubectl create namespace microservices \
+          --dry-run=client -o yaml | kubectl apply -f -
 
-          sudo kubectl create namespace monitoring \
+          kubectl create namespace monitoring \
           --dry-run=client -o yaml | kubectl apply -f -
 
           kubectl create secret docker-registry ecr-secret \
@@ -230,11 +231,11 @@ jobs:
           --dry-run=client -o yaml | kubectl apply -f -
 
           echo "===== SECRETS ====="
-          kubectl get secret -n microservices
+          kubectl get secrets -n microservices
 
-          sudo kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /home/ubuntu/k8s/
+          kubectl apply -f /home/ubuntu/k8s/
 
-          sudo kubectl --kubeconfig=/etc/kubernetes/admin.conf get pods -A
+          kubectl get pods -A
 
           EOF
 
