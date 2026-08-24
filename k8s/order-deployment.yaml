@@ -23,7 +23,7 @@ spec:
 
       containers:
         - name: order-service
-          image: 774871136295.dkr.ecr.us-east-1.amazonaws.com/order-service-repo:647006126cd37145bb23dc690c576458d4420f2d
+          image: ORDER_IMAGE
 
           resources:
             requests:
