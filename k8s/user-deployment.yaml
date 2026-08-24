@@ -13,28 +13,25 @@ spec:
       app: user-service
 
   template:
-
     metadata:
       labels:
         app: user-service
 
     spec:
-
       imagePullSecrets:
         - name: ecr-secret
 
       containers:
+        - name: user-service
+          image: USER_IMAGE
 
-      - name: user-service
-        image: USER_IMAGE
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
 
-        resources:
-          requests:
-	        cpu: "100m"
-	        memory: "128Mi"
-          limits:
-	        cpu: "500m"
-	        memory: "256Mi"
-
-        ports:
-        - containerPort: 5000
+          ports:
+            - containerPort: 5000
